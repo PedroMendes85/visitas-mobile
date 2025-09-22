@@ -1,0 +1,1 @@
+Ver instruções no ChatGPT.
