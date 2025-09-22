@@ -1,4 +1,4 @@
-streamlit
-fpdf
-Pillow
-streamlit-camera-input-live
+streamlit==1.49.1
+fpdf==1.7.2
+Pillow==11.3.0
+streamlit-camera-input-live==0.2.4
