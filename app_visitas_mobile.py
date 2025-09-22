@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# (same mobile app as previously generated)
+# Versão mobile com câmera nativa do Streamlit (sem libs extras)
 import os, re, unicodedata, tempfile
 from datetime import date
 from io import BytesIO
@@ -7,12 +7,6 @@ from io import BytesIO
 import streamlit as st
 from fpdf import FPDF
 from PIL import Image
-
-try:
-    from streamlit_camera_input_live import camera_input_live
-    CAMERA_OK = True
-except Exception:
-    CAMERA_OK = False
 
 st.set_page_config(page_title="Visita - Banana (Mobile)", layout="wide")
 
@@ -40,6 +34,7 @@ def add_wrapped(pdf, text, lh=6):
         return
     pdf.multi_cell(0, lh, text)
 
+# ----- Sidebar -----
 st.sidebar.title("Configurações")
 consultor = st.sidebar.text_input("Consultor", value="Seu Nome")
 empresa = st.sidebar.text_input("Empresa", value="Comtécnica Agro")
@@ -57,6 +52,7 @@ elif os.path.exists(DEFAULT_LOGO):
 
 assinatura_bytes = assinatura_upload.read() if assinatura_upload else None
 
+# ----- Cabeçalho -----
 st.title("Visita Técnica - Bananeicultura (Mobile)")
 
 c1, c2 = st.columns(2)
@@ -73,6 +69,7 @@ with c2:
 
 st.markdown('---')
 
+# ----- Itens -----
 st.subheader('Itens da Visita')
 if 'itens' not in st.session_state:
     st.session_state.itens = []
@@ -104,13 +101,10 @@ with colU:
         for f in uploads:
             add_item_from_upload(f)
 with colC:
-    if CAMERA_OK:
-        st.caption('Ou tirar foto agora:')
-        pic = camera_input_live()
-        if pic is not None:
-            add_item_from_camera(pic.getvalue())
-    else:
-        st.info('Para ativar a câmera, instale:  pip install streamlit-camera-input-live')
+    st.caption("Ou tirar foto agora:")
+    foto = st.camera_input("Tirar foto")
+    if foto is not None:
+        add_item_from_camera(foto.getvalue())
 
 talhoes_opcoes = [t.strip() for t in talhoes_lista.split(',') if t.strip()]
 cat_opcoes = ['Praga', 'Doença', 'Destaque', 'Resultado de Tratamento']
@@ -141,6 +135,7 @@ def gerar_pdf():
     pdf = FPDF(unit='mm', format='A4')
     pdf.set_auto_page_break(auto=True, margin=15)
 
+    # Capa
     pdf.add_page()
     if logo_bytes:
         try:
@@ -160,10 +155,12 @@ def gerar_pdf():
     pdf.cell(0, 8, f'Produtor: {produtor}  |  Propriedade: {propriedade}', ln=1, align='C')
     pdf.cell(0, 8, f'Cidade: {cidade}  |  Bairro: {bairro}', ln=1, align='C')
     pdf.cell(0, 8, f'Área: {area:.2f} ha  |  Data: {data_visita.strftime("%d/%m/%Y")}', ln=1, align='C')
-    pdf.ln(4)
-    pdf.set_font('Arial', 'B', 14)
-    pdf.cell(0, 10, 'Comtécnica 55 anos (1970–2025)', ln=1, align='C')
+    if tema_55:
+        pdf.ln(4)
+        pdf.set_font('Arial', 'B', 14)
+        pdf.cell(0, 10, 'Comtécnica 55 anos (1970–2025)', ln=1, align='C')
 
+    # Conteúdo
     pdf.add_page()
     pdf.set_font('Arial', 'B', 14)
     pdf.cell(0, 8, 'Cabeçalho da Visita', ln=1)
